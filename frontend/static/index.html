@@ -46,224 +46,251 @@
   .brand-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
   .brand-subtitle { font-size: 0.75rem; opacity: 0.88; font-weight: 400; }
 
-  /* App container layout */
+  /* Main Stage & Sidelined Chat Container */
   .app-container {
     display: flex;
     flex: 1;
     overflow: hidden;
+    height: calc(100vh - 60px);
   }
-  .chat-column {
+
+  /* Left Stage: 72% Width Race Car Arcade */
+  .game-stage {
     flex: 1;
+    min-width: 0;
+    background: #0f172a;
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    align-items: center;
+    position: relative;
+    padding: 0.75rem 1rem;
+    overflow: hidden;
+  }
+  .game-hud {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    color: #f8fafc;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    backdrop-filter: blur(6px);
+  }
+  .hud-item { display: flex; align-items: center; gap: 0.4rem; }
+  .hud-badge { background: #3b82f6; padding: 0.2rem 0.6rem; border-radius: 8px; font-size: 0.85rem; }
+  .hud-badge.green { background: #10b981; }
+  .hud-badge.red { background: #ef4444; }
+
+  /* Arcade Canvas Viewport */
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #020617;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.8);
+    overflow: hidden;
+    border: 2px solid #334155;
+  }
+  canvas#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #1e293b;
+  }
+
+  /* Webcam PIP and Gesture HUD */
+  .pip-camera {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 170px;
+    height: 128px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+  .pip-camera video {
+    width: 100%;
+    height: 94px;
+    object-fit: cover;
+    transform: scaleX(-1);
+    background: #000;
+  }
+  .pip-status {
+    height: 34px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 0 4px;
+  }
+
+  /* Bottom Game Controls Bar */
+  .game-controls-bar {
+    width: 100%;
+    max-width: 720px;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .touch-steering-group {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .game-btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: #334155;
+    color: #f8fafc;
+    transition: all 0.15s;
+  }
+  .game-btn:hover { background: #475569; }
+  .game-btn.primary { background: #2d6a4f; }
+  .game-btn.primary:hover { background: #1b4332; }
+  .game-btn.steer { background: #1e293b; border: 1px solid #475569; user-select: none; font-size: 0.9rem; }
+  .game-btn.steer:active { background: #38bdf8; color: #000; }
+
+  /* Sidelined Chat Column (28% Width) */
+  .chat-column {
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-left: 1px solid var(--border);
+    min-width: 320px;
+  }
+  .chat-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chat-header-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent-dark);
   }
   #log {
     flex: 1;
     overflow-y: auto;
-    padding: 1.2rem;
-    max-width: 780px;
+    padding: 1rem;
     width: 100%;
-    margin: 0 auto;
     scroll-behavior: smooth;
   }
-  .msg { margin: 0.8rem 0; display: flex; flex-direction: column; }
+  .msg { margin: 0.6rem 0; display: flex; flex-direction: column; }
   .msg.user { align-items: flex-end; }
   .msg.agent { align-items: flex-start; }
   .bubble {
     display: inline-block;
-    padding: 0.75rem 1.05rem;
-    border-radius: 16px;
+    padding: 0.65rem 0.9rem;
+    border-radius: 14px;
     background: var(--card-bg);
     border: 1px solid var(--border);
     text-align: left;
-    max-width: 85%;
+    max-width: 92%;
     white-space: pre-wrap;
-    line-height: 1.5;
+    line-height: 1.45;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
   .msg.user .bubble {
     background: var(--accent);
     color: #fff;
     border: none;
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 3px;
   }
   .msg.agent .bubble {
-    border-bottom-left-radius: 4px;
+    border-bottom-left-radius: 3px;
     background: #ffffff;
   }
   .bubble.rich { background: transparent; border: none; padding: 0; max-width: 100%; white-space: normal; box-shadow: none; }
 
   /* Quick suggestion pills */
   #suggestions {
-    max-width: 780px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 0.4rem 1.2rem;
+    padding: 0.4rem 0.8rem;
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
     overflow-x: auto;
     white-space: nowrap;
     scrollbar-width: none;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
   }
   #suggestions::-webkit-scrollbar { display: none; }
   .pill {
-    background: var(--accent-light);
+    background: #fff;
     color: var(--accent-dark);
     border: 1px solid #c8e6c9;
-    padding: 0.35rem 0.75rem;
-    border-radius: 14px;
-    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    flex-shrink: 0;
   }
-  .pill:hover {
-    background: #d4edda;
-    transform: translateY(-1px);
-  }
+  .pill:hover { background: #e8f5e9; }
 
   form {
     display: flex;
-    gap: 0.6rem;
-    padding: 0.85rem 1.2rem;
+    gap: 0.5rem;
+    padding: 0.65rem 0.8rem;
     border-top: 1px solid var(--border);
     background: #fff;
-    max-width: 780px;
-    width: 100%;
-    margin: 0 auto;
   }
   input {
     flex: 1;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.85rem;
     border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 0.95rem;
+    border-radius: 18px;
+    font-size: 0.88rem;
     outline: none;
-    transition: border-color 0.2s;
   }
   input:focus { border-color: var(--accent); }
-  button {
-    padding: 0.75rem 1.25rem;
+  button.chat-send-btn {
+    padding: 0.6rem 1rem;
     border: none;
-    border-radius: 20px;
+    border-radius: 18px;
     background: var(--accent);
     color: #fff;
     font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  button:hover { background: var(--accent-dark); }
-
-  /* Webcam side panel on the right */
-  .cam-column {
-    width: 380px;
-    background: #ffffff;
-    border-left: 1px solid var(--border);
-    padding: 1.2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    overflow-y: auto;
-  }
-  .cam-card {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-  }
-  .cam-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--accent-dark);
-    margin-bottom: 0.3rem;
-  }
-  .cam-desc {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.8rem;
-  }
-  .video-wrapper {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  video#webcam {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1); /* mirror view for user friendliness */
-  }
-  .cam-btn {
-    margin-top: 0.8rem;
-    padding: 0.5rem 1.1rem;
     font-size: 0.85rem;
-    border-radius: 16px;
-  }
-  .status-badge {
-    margin-top: 0.6rem;
-    font-size: 0.82rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 12px;
-    background: #e2e8f0;
-    color: #475569;
-    font-weight: 600;
-  }
-  .status-badge.smile { background: #d1fae5; color: #065f46; }
-  .status-badge.neutral { background: #fef3c7; color: #92400e; }
-  .status-badge.noface { background: #fee2e2; color: #991b1b; }
-
-  /* Plant Recommendation Display Card */
-  .plant-result-card {
-    width: 100%;
-    background: #fff;
-    border: 2px solid var(--accent);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(45, 106, 79, 0.12);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    transition: transform 0.2s ease;
-  }
-  .plant-result-img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    background: #e2e8f0;
-  }
-  .plant-result-body {
-    padding: 0.85rem;
-    width: 100%;
-  }
-  .plant-result-name {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--accent-dark);
-    margin-bottom: 0.25rem;
-  }
-  .plant-result-reason {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
+    cursor: pointer;
   }
 
-  /* Responsive collapse on narrow windows */
-  @media (max-width: 900px) {
-    .app-container { flex-direction: column; overflow-y: auto; }
-    .cam-column { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+  @media (max-width: 950px) {
+    .app-container { flex-direction: column; overflow-y: auto; height: auto; }
+    .game-stage { min-height: 520px; }
+    .chat-column { width: 100%; height: 500px; border-left: none; border-top: 2px solid var(--border); }
   }
 
   /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
@@ -292,62 +319,78 @@
   </div>
 </header>
 <div class="app-container">
-  <!-- Left column: Botanical Chat Interface -->
-  <div class="chat-column">
+  <!-- Main Stage: Retro Canadian Botanical Race Track (72% Width) -->
+  <main class="game-stage">
+    <!-- Top HUD Bar -->
+    <div class="game-hud">
+      <div class="hud-item">
+        <span>🏆 SCORE:</span>
+        <span id="game-score" class="hud-badge green">0</span>
+      </div>
+      <div class="hud-item">
+        <span>🏎️ SPEED:</span>
+        <span id="game-speed" class="hud-badge">120 KM/H</span>
+      </div>
+      <div class="hud-item">
+        <span>🌲 DISTANCE:</span>
+        <span id="game-dist" class="hud-badge">0 M</span>
+      </div>
+      <div class="hud-item">
+        <span id="finger-indicator" class="hud-badge">Index Fingers: Ready</span>
+      </div>
+    </div>
+
+    <!-- Arcade Canvas Viewport -->
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="600" height="700"></canvas>
+      
+      <!-- Webcam PIP HUD (bottom-right of the arcade stage) -->
+      <div class="pip-camera">
+        <video id="webcam" autoplay muted playsinline></video>
+        <div id="cam-status" class="pip-status">👈 Left | Right 👉</div>
+      </div>
+    </div>
+
+    <!-- Game Controls & Gesture Toolbar -->
+    <div class="game-controls-bar">
+      <div style="display:flex; gap:0.4rem; align-items:center;">
+        <button id="cam-toggle-btn" class="game-btn primary" type="button">📷 Start Cam Steering</button>
+        <button id="game-start-btn" class="game-btn" type="button">▶️ Restart Race</button>
+      </div>
+
+      <!-- On-Screen Steering & Touch Controls -->
+      <div class="touch-steering-group">
+        <button id="steer-left-btn" class="game-btn steer" type="button">👈 Left</button>
+        <button id="steer-boost-btn" class="game-btn steer" type="button" style="background:#b91c1c;">🚀 Boost</button>
+        <button id="steer-right-btn" class="game-btn steer" type="button">Right 👉</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sidelined Column: Sprout & Bloom Plant Concierge (28% Width) -->
+  <aside class="chat-column">
+    <div class="chat-header">
+      <div class="chat-header-title">🌿 Plant Concierge</div>
+      <span style="font-size:0.75rem; color:var(--text-secondary);">Canadian Care</span>
+    </div>
+
     <div id="log">
       <div class="msg agent">
-        <div class="bubble">Hello! I'm your lightweight plant care concierge. Ask me anything about hardy outdoor varieties, Canadian frost dates, low-light indoor plants, or seasonal care! 🌸</div>
+        <div class="bubble">Welcome! Steer with your index fingers (👈 Left / 👉 Right / Both for Nitro Boost!). Ask me anything about plant care anytime! 🌸</div>
       </div>
     </div>
+
     <div id="suggestions">
-      <button class="pill" data-prompt="What are the best low-light houseplants for Canadian winters?">🪴 Low-Light Houseplants</button>
-      <button class="pill" data-prompt="What are the frost dates and planting rules for Zone 5/6 (Toronto / Montreal)?">🇨🇦 Canadian Frost Dates</button>
-      <button class="pill" data-prompt="What flowering annuals are best for budding gardeners?">🌸 Top Flowering Annuals</button>
-      <button class="pill" data-prompt="How do I protect houseplants from radiator dry air and cold drafts?">❄️ Winter Care Tips</button>
+      <button class="pill" data-prompt="What are the best low-light houseplants for Canadian winters?">🪴 Low-Light</button>
+      <button class="pill" data-prompt="What are the frost dates for Zone 5/6?">🇨🇦 Frost Dates</button>
+      <button class="pill" data-prompt="What flowering annuals are easiest?">🌸 Annuals</button>
+      <button class="pill" data-prompt="How to protect plants from radiator air?">❄️ Winter Tips</button>
     </div>
+
     <form id="form">
-      <input id="input" placeholder="Ask about plant care, frost dates, or varieties…" autocomplete="off" autofocus>
-      <button>Send</button>
+      <input id="input" placeholder="Ask plant concierge…" autocomplete="off">
+      <button class="chat-send-btn">Send</button>
     </form>
-  </div>
-
-  <!-- Right column: Webcam Smile Detector -->
-  <aside class="cam-column">
-    <div class="cam-card">
-      <div class="cam-title">📷 Smart Camera & Plant Matcher</div>
-      <div class="cam-desc">
-        🌸 Smile &rarr; <strong>Petunia</strong> | 😐 Neutral &rarr; <strong>Snake Plant</strong><br>
-        🖐️ 10 Fingers &rarr; <strong>Cherry Blossom</strong> | 👥 2 People &rarr; <strong>Rose</strong>
-      </div>
-      
-      <div class="video-wrapper">
-        <video id="webcam" autoplay muted playsinline></video>
-      </div>
-
-      <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; width:100%;">
-        <button id="cam-toggle-btn" class="cam-btn" type="button">Start Camera</button>
-        <label class="cam-btn" style="background:#40916c; cursor:pointer; display:inline-flex; align-items:center; margin-top:0.8rem;">
-          📁 Upload Photo
-          <input type="file" id="photo-upload" accept="image/*" style="display:none;">
-        </label>
-      </div>
-      <div style="display:flex; gap:0.35rem; margin-top:0.5rem; flex-wrap:wrap; justify-content:center;">
-        <button id="test-smile-btn" class="cam-btn" type="button" style="background:#2d6a4f; padding:0.3rem 0.6rem; font-size:0.72rem;">😊 Smile</button>
-        <button id="test-neutral-btn" class="cam-btn" type="button" style="background:#52796f; padding:0.3rem 0.6rem; font-size:0.72rem;">😐 Neutral</button>
-        <button id="test-fingers-btn" class="cam-btn" type="button" style="background:#d81b60; padding:0.3rem 0.6rem; font-size:0.72rem;">🖐️ 10 Fingers</button>
-        <button id="test-twopeople-btn" class="cam-btn" type="button" style="background:#b71c1c; padding:0.3rem 0.6rem; font-size:0.72rem;">👥 2 People</button>
-      </div>
-      <div id="cam-status" class="status-badge" style="margin-top:0.6rem;">Camera Off</div>
-    </div>
-
-    <!-- Match Result Card -->
-    <div id="plant-match-card" class="plant-result-card">
-      <img id="plant-img" class="plant-result-img" src="https://images.unsplash.com/photo-1599598425947-230a73445646?auto=format&fit=crop&w=600&q=80" alt="Snake Plant">
-      <div class="plant-result-body">
-        <div id="plant-name" class="plant-result-name">Snake Plant (Sansevieria)</div>
-        <div id="plant-reason" class="plant-result-reason">Calm, resilient, and sturdy! Thrives in any low-light Canadian room with minimal watering.</div>
-      </div>
-    </div>
   </aside>
 </div>
 
@@ -515,317 +558,493 @@ document.getElementById("suggestions").addEventListener("click", (ev) => {
 });
 
 /* ----------------------------------------------------------------------------
- * Webcam Smile Detection & Plant Matcher (Petunia vs Snake Plant)
- * Uses client-side @vladmandic/face-api TinyFaceDetector + FaceExpressionNet
+ * 🏎️ RETRO BOTANICAL RACE CAR ENGINE
+ * 60 FPS HTML5 Canvas game controlled by two index fingers or arrow keys
  * -------------------------------------------------------------------------- */
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("game-score");
+const speedEl = document.getElementById("game-speed");
+const distEl = document.getElementById("game-dist");
+const fingerIndicator = document.getElementById("finger-indicator");
+const camStatus = document.getElementById("cam-status");
 const webcamVideo = document.getElementById("webcam");
 const camToggleBtn = document.getElementById("cam-toggle-btn");
-const camStatus = document.getElementById("cam-status");
-const plantImg = document.getElementById("plant-img");
-const plantName = document.getElementById("plant-name");
-const plantReason = document.getElementById("plant-reason");
-const plantMatchCard = document.getElementById("plant-match-card");
+const gameStartBtn = document.getElementById("game-start-btn");
 
-const PETUNIA_DATA = {
-  name: "Petunia (Flowering Annual)",
-  img: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=600&q=80",
-  reason: "Bright, joyful, and smiling! Petunias bring vibrant Canadian summer blooms and love sunny balconies.",
+// Game State
+let car = {
+  x: canvas.width / 2,
+  y: canvas.height - 130,
+  width: 44,
+  height: 80,
+  speed: 6,
+  boost: 1,
+  steer: 0, // -1 (left) to +1 (right)
+  shield: 0,
 };
 
-const SNAKE_PLANT_DATA = {
-  name: "Snake Plant (Sansevieria)",
-  img: "https://images.unsplash.com/photo-1599598425947-230a73445646?auto=format&fit=crop&w=600&q=80",
-  reason: "Calm, focused, and resilient! Thrives in any low-light Canadian room with minimal watering.",
-};
+let score = 0;
+let distance = 0;
+let gameOver = false;
+let roadOffset = 0;
+let obstacles = [];
+let items = []; // Flowers & powerups
+let roadsideDeco = [];
 
-const CHERRY_BLOSSOM_DATA = {
-  name: "Cherry Blossom (Sakura)",
-  img: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=600&q=80",
-  reason: "All 10 fingers extended! High-five for spring blossoms, high energy, and Canadian cherry blossom season.",
-};
+// Controls state
+const keys = { left: false, right: false, boost: false };
+let fingerSteering = { leftRaised: false, rightRaised: false, boost: false };
 
-const ROSE_DATA = {
-  name: "Rose (Garden Shrub)",
-  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
-  reason: "2 people detected in frame! The timeless symbol of partnership, companion gardening, and beauty.",
-};
-
-let currentMatch = "snake";
-let isCameraRunning = false;
-let modelsLoaded = false;
+// MediaPipe / Camera state
 let streamInstance = null;
-let detectionInterval = null;
 let handsDetector = null;
-let latestFingerCount = 0;
+let isCameraRunning = false;
 
-function setPlantMatch(type) {
-  if (currentMatch === type) return;
-  currentMatch = type;
-  let data = SNAKE_PLANT_DATA;
-  if (type === "petunia") data = PETUNIA_DATA;
-  else if (type === "cherry_blossom") data = CHERRY_BLOSSOM_DATA;
-  else if (type === "rose") data = ROSE_DATA;
+// Spawn roadside trees and flowers
+function initRoadside() {
+  roadsideDeco = [];
+  for (let i = 0; i < 14; i++) {
+    roadsideDeco.push({
+      y: i * 55,
+      leftSide: Math.random() < 0.5,
+      type: Math.random() < 0.6 ? "pine" : "flower",
+    });
+  }
+}
+initRoadside();
 
-  plantImg.src = data.img;
-  plantName.textContent = data.name;
-  plantReason.textContent = data.reason;
-  plantMatchCard.style.transform = "scale(1.03)";
-  setTimeout(() => { plantMatchCard.style.transform = "scale(1)"; }, 200);
+function spawnObstacle() {
+  if (Math.random() < 0.035 && obstacles.length < 5) {
+    const roadWidth = canvas.width * 0.64;
+    const roadLeft = (canvas.width - roadWidth) / 2;
+    const laneX = roadLeft + 25 + Math.random() * (roadWidth - 50 - 40);
+    obstacles.push({
+      x: laneX,
+      y: -80,
+      width: 42,
+      height: 75,
+      speed: 2 + Math.random() * 2,
+      color: Math.random() < 0.5 ? "#ef4444" : "#f59e0b",
+    });
+  }
 }
 
-function countExtendedFingers(landmarks) {
-  // MediaPipe hand 21 landmarks
-  // Tips: 4 (thumb), 8 (index), 12 (middle), 16 (ring), 20 (pinky)
-  let count = 0;
-  const tipIndices = [8, 12, 16, 20];
-  const pipIndices = [6, 10, 14, 18];
+function spawnItem() {
+  if (Math.random() < 0.02 && items.length < 3) {
+    const roadWidth = canvas.width * 0.64;
+    const roadLeft = (canvas.width - roadWidth) / 2;
+    items.push({
+      x: roadLeft + 30 + Math.random() * (roadWidth - 60),
+      y: -40,
+      radius: 16,
+      type: Math.random() < 0.5 ? "petunia" : "snake", // petunia = boost, snake = shield
+    });
+  }
+}
 
-  // Check 4 fingers tip vs pip
-  for (let i = 0; i < 4; i++) {
-    if (landmarks[tipIndices[i]].y < landmarks[pipIndices[i]].y) count++;
+function resetGame() {
+  car.x = canvas.width / 2;
+  car.steer = 0;
+  car.speed = 6;
+  car.boost = 1;
+  car.shield = 0;
+  score = 0;
+  distance = 0;
+  obstacles = [];
+  items = [];
+  gameOver = false;
+}
+
+// Draw Pixel-Art / Arcade Sports Car
+function drawCar(x, y, isPlayer, color = "#22c55e", hasShield = false) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Shield aura
+  if (hasShield) {
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.8)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 48, 0, Math.PI * 2);
+    ctx.stroke();
   }
-  // Check thumb extension relative to knuckle
-  const thumbTip = landmarks[4];
-  const thumbMcp = landmarks[2];
-  const wrist = landmarks[0];
-  if (Math.abs(thumbTip.x - wrist.x) > Math.abs(thumbMcp.x - wrist.x) * 1.1) {
-    count++;
+
+  // Wheels
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(-22, -32, 8, 18); // front left
+  ctx.fillRect(14, -32, 8, 18);  // front right
+  ctx.fillRect(-22, 14, 8, 20);  // rear left
+  ctx.fillRect(14, 14, 8, 20);   // rear right
+
+  // Body
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(-18, -36, 36, 72, 8);
+  ctx.fill();
+
+  // Windshield
+  ctx.fillStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.roundRect(-13, -18, 26, 18, 4);
+  ctx.fill();
+
+  // Roof & stripes
+  ctx.fillStyle = isPlayer ? "#ffffff" : "#1e293b";
+  ctx.fillRect(-4, -34, 8, 68);
+
+  // Headlights / taillights
+  if (isPlayer) {
+    ctx.fillStyle = "#fef08a";
+    ctx.fillRect(-14, -38, 7, 4);
+    ctx.fillRect(7, -38, 7, 4);
+    // Exhaust flame if boosting
+    if (car.boost > 1) {
+      ctx.fillStyle = "#ff4500";
+      ctx.beginPath();
+      ctx.moveTo(-8, 36);
+      ctx.lineTo(0, 52 + Math.random() * 8);
+      ctx.lineTo(8, 36);
+      ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(-14, 34, 6, 4);
+    ctx.fillRect(8, 34, 6, 4);
   }
-  return count;
+
+  ctx.restore();
+}
+
+// Main Game Loop
+function updateGame() {
+  if (gameOver) return;
+
+  // Steering evaluation:
+  let steerDir = 0;
+  if (keys.left || fingerSteering.leftRaised) steerDir -= 1;
+  if (keys.right || fingerSteering.rightRaised) steerDir += 1;
+
+  const isBoosting = keys.boost || fingerSteering.boost;
+  car.boost = isBoosting ? 1.8 : 1.0;
+  const currentSpeed = car.speed * car.boost;
+
+  // Move car horizontally
+  car.x += steerDir * 7;
+  const roadWidth = canvas.width * 0.64;
+  const roadLeft = (canvas.width - roadWidth) / 2;
+  const roadRight = roadLeft + roadWidth;
+
+  // Clamp inside road boundaries (hitting grass slows down)
+  if (car.x < roadLeft + 22) { car.x = roadLeft + 22; car.boost = 0.6; }
+  if (car.x > roadRight - 22) { car.x = roadRight - 22; car.boost = 0.6; }
+
+  // Road movement
+  roadOffset = (roadOffset + currentSpeed * 1.5) % 40;
+  distance += Math.round(currentSpeed * 0.8);
+  score += Math.round(currentSpeed * 0.5);
+
+  // Update HUD
+  scoreEl.textContent = score;
+  speedEl.textContent = `${Math.round(currentSpeed * 18)} KM/H`;
+  distEl.textContent = `${distance} M`;
+
+  // Spawn obstacles & items
+  spawnObstacle();
+  spawnItem();
+
+  // Move obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const ob = obstacles[i];
+    ob.y += (currentSpeed - ob.speed) * 1.6;
+
+    // Collision check
+    const dx = Math.abs(car.x - ob.x);
+    const dy = Math.abs(car.y - ob.y);
+    if (dx < 36 && dy < 55) {
+      if (car.shield > 0) {
+        car.shield--;
+        obstacles.splice(i, 1); // destroy obstacle with shield
+      } else {
+        gameOver = true;
+      }
+    } else if (ob.y > canvas.height + 100) {
+      obstacles.splice(i, 1);
+      score += 150;
+    }
+  }
+
+  // Move powerup items
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    it.y += currentSpeed * 1.2;
+    const dx = Math.abs(car.x - it.x);
+    const dy = Math.abs(car.y - it.y);
+    if (dx < 34 && dy < 34) {
+      if (it.type === "petunia") {
+        score += 300;
+        fingerIndicator.textContent = "🌸 PETUNIA BOOST ACTIVE!";
+      } else {
+        car.shield = 1;
+        fingerIndicator.textContent = "🪴 SNAKE PLANT SHIELD!";
+      }
+      items.splice(i, 1);
+    } else if (it.y > canvas.height + 50) {
+      items.splice(i, 1);
+    }
+  }
+
+  // Roadside decorations
+  for (const deco of roadsideDeco) {
+    deco.y = (deco.y + currentSpeed * 1.5) % canvas.height;
+  }
+}
+
+function renderGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 1. Grass verge (Canadian Evergreen green)
+  ctx.fillStyle = "#1e3a1e";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 2. Road surface
+  const roadWidth = canvas.width * 0.64;
+  const roadLeft = (canvas.width - roadWidth) / 2;
+  const roadRight = roadLeft + roadWidth;
+
+  // Road curbs / rumble strips
+  for (let y = -40 + roadOffset; y < canvas.height; y += 40) {
+    const curbColor = Math.floor((y - roadOffset) / 40) % 2 === 0 ? "#ef4444" : "#ffffff";
+    ctx.fillStyle = curbColor;
+    ctx.fillRect(roadLeft - 10, y, 10, 40);
+    ctx.fillRect(roadRight, y, 10, 40);
+  }
+
+  // Asphalt
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(roadLeft, 0, roadWidth, canvas.height);
+
+  // Center dashed lane lines
+  ctx.fillStyle = "#facc15";
+  for (let y = -40 + roadOffset; y < canvas.height; y += 40) {
+    ctx.fillRect(canvas.width / 2 - 3, y, 6, 24);
+  }
+
+  // 3. Draw Roadside Canadian Trees / Flowers
+  for (const deco of roadsideDeco) {
+    const x = deco.leftSide ? roadLeft - 35 : roadRight + 25;
+    if (deco.type === "pine") {
+      ctx.fillStyle = "#14532d";
+      ctx.beginPath();
+      ctx.moveTo(x, deco.y - 20);
+      ctx.lineTo(x - 14, deco.y + 14);
+      ctx.lineTo(x + 14, deco.y + 14);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "#ec4899";
+      ctx.beginPath();
+      ctx.arc(x, deco.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 4. Draw powerup items
+  for (const it of items) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(it.x, it.y, it.radius, 0, Math.PI * 2);
+    ctx.fillStyle = it.type === "petunia" ? "#db2777" : "#059669";
+    ctx.fill();
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(it.type === "petunia" ? "🌸" : "🪴", it.x, it.y);
+    ctx.restore();
+  }
+
+  // 5. Draw competitors / obstacles
+  for (const ob of obstacles) {
+    drawCar(ob.x, ob.y, false, ob.color);
+  }
+
+  // 6. Draw Player Car
+  drawCar(car.x, car.y, true, "#10b981", car.shield > 0);
+
+  // 7. Game Over Overlay
+  if (gameOver) {
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ef4444";
+    ctx.font = "bold 34px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("CRASH! GAME OVER", canvas.width / 2, canvas.height / 2 - 40);
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "18px sans-serif";
+    ctx.fillText(`Final Distance: ${distance} M  |  Score: ${score}`, canvas.width / 2, canvas.height / 2 + 5);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText("Click 'Restart Race' or raise both index fingers to retry!", canvas.width / 2, canvas.height / 2 + 50);
+  }
+}
+
+function gameLoop() {
+  updateGame();
+  renderGame();
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+// Keyboard controls
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "ArrowUp" || e.key === "w" || e.key === " ") keys.boost = true;
+  if (gameOver && (e.key === "Enter" || e.key === " ")) resetGame();
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+  if (e.key === "ArrowUp" || e.key === "w" || e.key === " ") keys.boost = false;
+});
+
+// On-screen touch buttons
+const leftBtn = document.getElementById("steer-left-btn");
+const rightBtn = document.getElementById("steer-right-btn");
+const boostBtn = document.getElementById("steer-boost-btn");
+
+const bindBtn = (btn, keyName) => {
+  btn.addEventListener("mousedown", () => { keys[keyName] = true; });
+  btn.addEventListener("mouseup", () => { keys[keyName] = false; });
+  btn.addEventListener("touchstart", (e) => { e.preventDefault(); keys[keyName] = true; });
+  btn.addEventListener("touchend", () => { keys[keyName] = false; });
+};
+bindBtn(leftBtn, "left");
+bindBtn(rightBtn, "right");
+bindBtn(boostBtn, "boost");
+
+gameStartBtn.addEventListener("click", resetGame);
+
+/* ----------------------------------------------------------------------------
+ * 🖐️ TWO-INDEX-FINGER STEERING DETECTION (MediaPipe Hands)
+ * Left hand index up -> Turn Left
+ * Right hand index up -> Turn Right
+ * Both index fingers up -> Nitro Boost!
+ * -------------------------------------------------------------------------- */
+function checkIndexRaised(landmarks) {
+  // Index Tip = 8, PIP = 6, MCP = 5
+  return landmarks[8].y < landmarks[6].y;
 }
 
 function initHandsDetector() {
   if (handsDetector || typeof Hands === "undefined") return;
   try {
     handsDetector = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
     });
     handsDetector.setOptions({
       maxNumHands: 2,
       modelComplexity: 0,
       minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
+      minTrackingConfidence: 0.5,
     });
+
     handsDetector.onResults((results) => {
-      let total = 0;
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        for (const landmarks of results.multiHandLandmarks) {
-          total += countExtendedFingers(landmarks);
+      let leftUp = false;
+      let rightUp = false;
+
+      if (results.multiHandLandmarks && results.multiHandedness) {
+        for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+          const landmarks = results.multiHandLandmarks[i];
+          const isRaised = checkIndexRaised(landmarks);
+          if (!isRaised) continue;
+
+          // Mirror view: video is mirrored with scaleX(-1)
+          // Landmark X: < 0.5 is left side of screen, > 0.5 is right side
+          const indexX = landmarks[8].x;
+          if (indexX > 0.5) {
+            leftUp = true; // user points on left side
+          } else {
+            rightUp = true; // user points on right side
+          }
         }
       }
-      latestFingerCount = total;
+
+      fingerSteering.leftRaised = leftUp;
+      fingerSteering.rightRaised = rightUp;
+      fingerSteering.boost = leftUp && rightUp;
+
+      if (fingerSteering.boost) {
+        fingerIndicator.textContent = "🚀 NITRO BOOST (Both Index Fingers!)";
+        camStatus.textContent = "🚀 DUAL BOOST!";
+      } else if (leftUp) {
+        fingerIndicator.textContent = "👈 STEERING LEFT (Left Index)";
+        camStatus.textContent = "👈 STEER LEFT";
+      } else if (rightUp) {
+        fingerIndicator.textContent = "👉 STEERING RIGHT (Right Index)";
+        camStatus.textContent = "👉 STEER RIGHT";
+      } else {
+        fingerIndicator.textContent = "Index Fingers: Ready";
+        camStatus.textContent = "👈 Left | Right 👉";
+      }
     });
-  } catch (e) {
-    console.warn("Hands detector init error:", e);
-  }
-}
-
-async function loadFaceModels() {
-  if (modelsLoaded) return true;
-  camStatus.textContent = "Loading AI models…";
-  try {
-    const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model";
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-    ]);
-    initHandsDetector();
-    modelsLoaded = true;
-    camStatus.textContent = "Models ready";
-    return true;
   } catch (err) {
-    console.error("Model load error:", err);
-    camStatus.className = "status-badge noface";
-    camStatus.textContent = "Failed to load models";
-    return false;
+    console.warn("MediaPipe Hands init error:", err);
   }
 }
 
-async function startCamera() {
-  camStatus.className = "status-badge";
-  camStatus.textContent = "Requesting webcam access…";
-
+async function startCameraSteering() {
+  camStatus.textContent = "Opening webcam…";
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    camStatus.className = "status-badge noface";
-    camStatus.textContent = "Webcam API not supported in this browser/frame.";
+    camStatus.textContent = "Cam API unavailable";
     return;
   }
-
   try {
     streamInstance = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 480 }, height: { ideal: 360 } },
+      video: { width: { ideal: 320 }, height: { ideal: 240 } },
       audio: false,
     });
     webcamVideo.srcObject = streamInstance;
     await webcamVideo.play();
-
     isCameraRunning = true;
-    camToggleBtn.textContent = "Stop Camera";
-    camStatus.textContent = "Camera active! Loading AI models…";
+    camToggleBtn.textContent = "⏹️ Stop Cam Steering";
+    camStatus.textContent = "Tracking Index Fingers…";
 
-    const ok = await loadFaceModels();
-    if (!ok) {
-      camStatus.textContent = "Camera on (AI models offline)";
-      return;
-    }
+    initHandsDetector();
 
-    camStatus.textContent = "Analyzing faces & hands…";
-    const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
-
-    detectionInterval = setInterval(async () => {
-      if (!isCameraRunning || webcamVideo.paused || webcamVideo.ended) return;
-      try {
-        // Run hands detection if available
-        if (handsDetector) {
-          try { await handsDetector.send({ image: webcamVideo }); } catch (_) {}
-        }
-
-        // Multi-face detection for 2 people rule
-        const faces = await faceapi.detectAllFaces(webcamVideo, detectorOptions).withFaceExpressions();
-
-        // Priority 1: 2 People in camera -> Rose
-        if (faces && faces.length >= 2) {
-          camStatus.className = "status-badge smile";
-          camStatus.textContent = `2 People Detected (👥 ${faces.length}) -> Rose 🌹`;
-          setPlantMatch("rose");
-          return;
-        }
-
-        // Priority 2: All 10 Fingers extended -> Cherry Blossom
-        if (latestFingerCount >= 10) {
-          camStatus.className = "status-badge smile";
-          camStatus.textContent = `10 Fingers Extended (🖐️🖐️) -> Cherry Blossom 🌸`;
-          setPlantMatch("cherry_blossom");
-          return;
-        }
-
-        // Priority 3: 1 Face detected
-        if (faces && faces.length === 1) {
-          const happyScore = faces[0].expressions ? faces[0].expressions.happy : 0;
-          if (happyScore > 0.55) {
-            camStatus.className = "status-badge smile";
-            camStatus.textContent = `Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
-            setPlantMatch("petunia");
-          } else {
-            camStatus.className = "status-badge neutral";
-            camStatus.textContent = `Neutral 😐 -> Snake Plant`;
-            setPlantMatch("snake");
-          }
-          return;
-        }
-
-        // Default: No faces or hands
-        camStatus.className = "status-badge noface";
-        camStatus.textContent = "No face / hands in frame";
-        setPlantMatch("snake");
-      } catch (e) {
-        console.warn("Detection skipped:", e);
+    // Frame processing loop
+    const sendFrame = async () => {
+      if (!isCameraRunning) return;
+      if (handsDetector && !webcamVideo.paused && !webcamVideo.ended) {
+        try { await handsDetector.send({ image: webcamVideo }); } catch (_) {}
       }
-    }, 280);
+      setTimeout(sendFrame, 120); // ~8 FPS detection loop keeps CPU low
+    };
+    sendFrame();
   } catch (err) {
-    console.error("Camera access error:", err);
-    camStatus.className = "status-badge noface";
-    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-      camStatus.textContent = "Permission denied. Check browser camera settings.";
-    } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-      camStatus.textContent = "No webcam device detected.";
-    } else {
-      camStatus.textContent = `Camera error: ${err.message || err.name}`;
-    }
+    console.error("Camera steering error:", err);
+    camStatus.textContent = "No camera / Denied";
   }
 }
 
-function stopCamera() {
+function stopCameraSteering() {
   isCameraRunning = false;
-  if (detectionInterval) {
-    clearInterval(detectionInterval);
-    detectionInterval = null;
-  }
   if (streamInstance) {
     streamInstance.getTracks().forEach((t) => t.stop());
     streamInstance = null;
   }
   webcamVideo.srcObject = null;
-  camToggleBtn.textContent = "Start Camera";
-  camStatus.className = "status-badge";
-  camStatus.textContent = "Camera Off";
-  setPlantMatch("snake");
+  camToggleBtn.textContent = "📷 Start Cam Steering";
+  camStatus.textContent = "Cam Off (Keys/Buttons Active)";
+  fingerSteering = { leftRaised: false, rightRaised: false, boost: false };
 }
 
 camToggleBtn.addEventListener("click", () => {
-  if (isCameraRunning) {
-    stopCamera();
-  } else {
-    startCamera();
-  }
-});
-
-// Simulation Quick-Test Buttons
-document.getElementById("test-smile-btn").addEventListener("click", () => {
-  camStatus.className = "status-badge smile";
-  camStatus.textContent = "Simulation: Smiling! 😊 (92%) -> Petunia";
-  setPlantMatch("petunia");
-});
-
-document.getElementById("test-neutral-btn").addEventListener("click", () => {
-  camStatus.className = "status-badge neutral";
-  camStatus.textContent = "Simulation: Neutral 😐 -> Snake Plant";
-  setPlantMatch("snake");
-});
-
-document.getElementById("test-fingers-btn").addEventListener("click", () => {
-  camStatus.className = "status-badge smile";
-  camStatus.textContent = "Simulation: All 10 Fingers! 🖐️🖐️ (10/10) -> Cherry Blossom";
-  setPlantMatch("cherry_blossom");
-});
-
-document.getElementById("test-twopeople-btn").addEventListener("click", () => {
-  camStatus.className = "status-badge smile";
-  camStatus.textContent = "Simulation: 2 People Detected! 👥 (2) -> Rose";
-  setPlantMatch("rose");
-});
-
-// Photo upload evaluation
-document.getElementById("photo-upload").addEventListener("change", async (ev) => {
-  const file = ev.target.files && ev.target.files[0];
-  if (!file) return;
-  camStatus.className = "status-badge";
-  camStatus.textContent = "Analyzing uploaded photo…";
-
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-  img.onload = async () => {
-    try {
-      const ok = await loadFaceModels();
-      if (!ok) return;
-      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.40 });
-      const faces = await faceapi.detectAllFaces(img, detectorOptions).withFaceExpressions();
-
-      if (faces && faces.length >= 2) {
-        camStatus.className = "status-badge smile";
-        camStatus.textContent = `Photo: 2+ People Detected (👥 ${faces.length}) -> Rose 🌹`;
-        setPlantMatch("rose");
-      } else if (faces && faces.length === 1) {
-        const happyScore = faces[0].expressions ? faces[0].expressions.happy : 0;
-        if (happyScore > 0.5) {
-          camStatus.className = "status-badge smile";
-          camStatus.textContent = `Photo: Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
-          setPlantMatch("petunia");
-        } else {
-          camStatus.className = "status-badge neutral";
-          camStatus.textContent = `Photo: Neutral 😐 -> Snake Plant`;
-          setPlantMatch("snake");
-        }
-      } else {
-        camStatus.className = "status-badge noface";
-        camStatus.textContent = "No face detected in photo";
-      }
-    } catch (err) {
-      console.error("Photo analysis error:", err);
-      camStatus.className = "status-badge noface";
-      camStatus.textContent = "Analysis error";
-    }
-  };
+  if (isCameraRunning) stopCameraSteering();
+  else startCameraSteering();
 });
 </script>
 </body>
