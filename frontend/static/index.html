@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 <!-- Lightweight in-browser face and expression recognition via @vladmandic/face-api -->
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
+<!-- MediaPipe Hands for multi-hand 10-finger counting -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 <style>
   :root {
     --accent: #2d6a4f;
@@ -311,8 +314,11 @@
   <!-- Right column: Webcam Smile Detector -->
   <aside class="cam-column">
     <div class="cam-card">
-      <div class="cam-title">📷 Smile & Plant Matcher</div>
-      <div class="cam-desc">Step in front of the camera: smile for <strong>Petunia</strong>, or stay neutral for <strong>Snake Plant</strong>!</div>
+      <div class="cam-title">📷 Smart Camera & Plant Matcher</div>
+      <div class="cam-desc">
+        🌸 Smile &rarr; <strong>Petunia</strong> | 😐 Neutral &rarr; <strong>Snake Plant</strong><br>
+        🖐️ 10 Fingers &rarr; <strong>Cherry Blossom</strong> | 👥 2 People &rarr; <strong>Rose</strong>
+      </div>
       
       <div class="video-wrapper">
         <video id="webcam" autoplay muted playsinline></video>
@@ -325,9 +331,11 @@
           <input type="file" id="photo-upload" accept="image/*" style="display:none;">
         </label>
       </div>
-      <div style="display:flex; gap:0.4rem; margin-top:0.5rem; flex-wrap:wrap; justify-content:center;">
-        <button id="test-smile-btn" class="cam-btn" type="button" style="background:#2d6a4f; padding:0.35rem 0.75rem; font-size:0.75rem;">😊 Test Smile</button>
-        <button id="test-neutral-btn" class="cam-btn" type="button" style="background:#52796f; padding:0.35rem 0.75rem; font-size:0.75rem;">😐 Test Neutral</button>
+      <div style="display:flex; gap:0.35rem; margin-top:0.5rem; flex-wrap:wrap; justify-content:center;">
+        <button id="test-smile-btn" class="cam-btn" type="button" style="background:#2d6a4f; padding:0.3rem 0.6rem; font-size:0.72rem;">😊 Smile</button>
+        <button id="test-neutral-btn" class="cam-btn" type="button" style="background:#52796f; padding:0.3rem 0.6rem; font-size:0.72rem;">😐 Neutral</button>
+        <button id="test-fingers-btn" class="cam-btn" type="button" style="background:#d81b60; padding:0.3rem 0.6rem; font-size:0.72rem;">🖐️ 10 Fingers</button>
+        <button id="test-twopeople-btn" class="cam-btn" type="button" style="background:#b71c1c; padding:0.3rem 0.6rem; font-size:0.72rem;">👥 2 People</button>
       </div>
       <div id="cam-status" class="status-badge" style="margin-top:0.6rem;">Camera Off</div>
     </div>
@@ -530,21 +538,86 @@ const SNAKE_PLANT_DATA = {
   reason: "Calm, focused, and resilient! Thrives in any low-light Canadian room with minimal watering.",
 };
 
+const CHERRY_BLOSSOM_DATA = {
+  name: "Cherry Blossom (Sakura)",
+  img: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=600&q=80",
+  reason: "All 10 fingers extended! High-five for spring blossoms, high energy, and Canadian cherry blossom season.",
+};
+
+const ROSE_DATA = {
+  name: "Rose (Garden Shrub)",
+  img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+  reason: "2 people detected in frame! The timeless symbol of partnership, companion gardening, and beauty.",
+};
+
 let currentMatch = "snake";
 let isCameraRunning = false;
 let modelsLoaded = false;
 let streamInstance = null;
 let detectionInterval = null;
+let handsDetector = null;
+let latestFingerCount = 0;
 
 function setPlantMatch(type) {
   if (currentMatch === type) return;
   currentMatch = type;
-  const data = type === "petunia" ? PETUNIA_DATA : SNAKE_PLANT_DATA;
+  let data = SNAKE_PLANT_DATA;
+  if (type === "petunia") data = PETUNIA_DATA;
+  else if (type === "cherry_blossom") data = CHERRY_BLOSSOM_DATA;
+  else if (type === "rose") data = ROSE_DATA;
+
   plantImg.src = data.img;
   plantName.textContent = data.name;
   plantReason.textContent = data.reason;
   plantMatchCard.style.transform = "scale(1.03)";
   setTimeout(() => { plantMatchCard.style.transform = "scale(1)"; }, 200);
+}
+
+function countExtendedFingers(landmarks) {
+  // MediaPipe hand 21 landmarks
+  // Tips: 4 (thumb), 8 (index), 12 (middle), 16 (ring), 20 (pinky)
+  let count = 0;
+  const tipIndices = [8, 12, 16, 20];
+  const pipIndices = [6, 10, 14, 18];
+
+  // Check 4 fingers tip vs pip
+  for (let i = 0; i < 4; i++) {
+    if (landmarks[tipIndices[i]].y < landmarks[pipIndices[i]].y) count++;
+  }
+  // Check thumb extension relative to knuckle
+  const thumbTip = landmarks[4];
+  const thumbMcp = landmarks[2];
+  const wrist = landmarks[0];
+  if (Math.abs(thumbTip.x - wrist.x) > Math.abs(thumbMcp.x - wrist.x) * 1.1) {
+    count++;
+  }
+  return count;
+}
+
+function initHandsDetector() {
+  if (handsDetector || typeof Hands === "undefined") return;
+  try {
+    handsDetector = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+    handsDetector.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 0,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    handsDetector.onResults((results) => {
+      let total = 0;
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        for (const landmarks of results.multiHandLandmarks) {
+          total += countExtendedFingers(landmarks);
+        }
+      }
+      latestFingerCount = total;
+    });
+  } catch (e) {
+    console.warn("Hands detector init error:", e);
+  }
 }
 
 async function loadFaceModels() {
@@ -556,6 +629,7 @@ async function loadFaceModels() {
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
     ]);
+    initHandsDetector();
     modelsLoaded = true;
     camStatus.textContent = "Models ready";
     return true;
@@ -571,7 +645,6 @@ async function startCamera() {
   camStatus.className = "status-badge";
   camStatus.textContent = "Requesting webcam access…";
 
-  // Check if getUserMedia is supported in the current environment
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     camStatus.className = "status-badge noface";
     camStatus.textContent = "Webcam API not supported in this browser/frame.";
@@ -579,7 +652,6 @@ async function startCamera() {
   }
 
   try {
-    // 1. Immediately request the camera stream so the browser prompt appears
     streamInstance = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 480 }, height: { ideal: 360 } },
       audio: false,
@@ -589,24 +661,47 @@ async function startCamera() {
 
     isCameraRunning = true;
     camToggleBtn.textContent = "Stop Camera";
-    camStatus.textContent = "Camera active! Loading AI model…";
+    camStatus.textContent = "Camera active! Loading AI models…";
 
-    // 2. Load models while camera is already showing
     const ok = await loadFaceModels();
     if (!ok) {
-      camStatus.textContent = "Camera on (expression model offline)";
+      camStatus.textContent = "Camera on (AI models offline)";
       return;
     }
 
-    camStatus.textContent = "Detecting smile…";
+    camStatus.textContent = "Analyzing faces & hands…";
     const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
 
     detectionInterval = setInterval(async () => {
       if (!isCameraRunning || webcamVideo.paused || webcamVideo.ended) return;
       try {
-        const result = await faceapi.detectSingleFace(webcamVideo, detectorOptions).withFaceExpressions();
-        if (result && result.expressions) {
-          const happyScore = result.expressions.happy || 0;
+        // Run hands detection if available
+        if (handsDetector) {
+          try { await handsDetector.send({ image: webcamVideo }); } catch (_) {}
+        }
+
+        // Multi-face detection for 2 people rule
+        const faces = await faceapi.detectAllFaces(webcamVideo, detectorOptions).withFaceExpressions();
+
+        // Priority 1: 2 People in camera -> Rose
+        if (faces && faces.length >= 2) {
+          camStatus.className = "status-badge smile";
+          camStatus.textContent = `2 People Detected (👥 ${faces.length}) -> Rose 🌹`;
+          setPlantMatch("rose");
+          return;
+        }
+
+        // Priority 2: All 10 Fingers extended -> Cherry Blossom
+        if (latestFingerCount >= 10) {
+          camStatus.className = "status-badge smile";
+          camStatus.textContent = `10 Fingers Extended (🖐️🖐️) -> Cherry Blossom 🌸`;
+          setPlantMatch("cherry_blossom");
+          return;
+        }
+
+        // Priority 3: 1 Face detected
+        if (faces && faces.length === 1) {
+          const happyScore = faces[0].expressions ? faces[0].expressions.happy : 0;
           if (happyScore > 0.55) {
             camStatus.className = "status-badge smile";
             camStatus.textContent = `Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
@@ -616,15 +711,17 @@ async function startCamera() {
             camStatus.textContent = `Neutral 😐 -> Snake Plant`;
             setPlantMatch("snake");
           }
-        } else {
-          camStatus.className = "status-badge noface";
-          camStatus.textContent = "No face in frame";
-          setPlantMatch("snake");
+          return;
         }
+
+        // Default: No faces or hands
+        camStatus.className = "status-badge noface";
+        camStatus.textContent = "No face / hands in frame";
+        setPlantMatch("snake");
       } catch (e) {
         console.warn("Detection skipped:", e);
       }
-    }, 250);
+    }, 280);
   } catch (err) {
     console.error("Camera access error:", err);
     camStatus.className = "status-badge noface";
@@ -663,6 +760,7 @@ camToggleBtn.addEventListener("click", () => {
   }
 });
 
+// Simulation Quick-Test Buttons
 document.getElementById("test-smile-btn").addEventListener("click", () => {
   camStatus.className = "status-badge smile";
   camStatus.textContent = "Simulation: Smiling! 😊 (92%) -> Petunia";
@@ -675,6 +773,19 @@ document.getElementById("test-neutral-btn").addEventListener("click", () => {
   setPlantMatch("snake");
 });
 
+document.getElementById("test-fingers-btn").addEventListener("click", () => {
+  camStatus.className = "status-badge smile";
+  camStatus.textContent = "Simulation: All 10 Fingers! 🖐️🖐️ (10/10) -> Cherry Blossom";
+  setPlantMatch("cherry_blossom");
+});
+
+document.getElementById("test-twopeople-btn").addEventListener("click", () => {
+  camStatus.className = "status-badge smile";
+  camStatus.textContent = "Simulation: 2 People Detected! 👥 (2) -> Rose";
+  setPlantMatch("rose");
+});
+
+// Photo upload evaluation
 document.getElementById("photo-upload").addEventListener("change", async (ev) => {
   const file = ev.target.files && ev.target.files[0];
   if (!file) return;
@@ -687,10 +798,15 @@ document.getElementById("photo-upload").addEventListener("change", async (ev) =>
     try {
       const ok = await loadFaceModels();
       if (!ok) return;
-      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
-      const result = await faceapi.detectSingleFace(img, detectorOptions).withFaceExpressions();
-      if (result && result.expressions) {
-        const happyScore = result.expressions.happy || 0;
+      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.40 });
+      const faces = await faceapi.detectAllFaces(img, detectorOptions).withFaceExpressions();
+
+      if (faces && faces.length >= 2) {
+        camStatus.className = "status-badge smile";
+        camStatus.textContent = `Photo: 2+ People Detected (👥 ${faces.length}) -> Rose 🌹`;
+        setPlantMatch("rose");
+      } else if (faces && faces.length === 1) {
+        const happyScore = faces[0].expressions ? faces[0].expressions.happy : 0;
         if (happyScore > 0.5) {
           camStatus.className = "status-badge smile";
           camStatus.textContent = `Photo: Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
