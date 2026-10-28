@@ -319,7 +319,11 @@
       </div>
 
       <button id="cam-toggle-btn" class="cam-btn" type="button">Start Camera</button>
-      <div id="cam-status" class="status-badge">Camera Off</div>
+      <div style="display:flex; gap:0.4rem; margin-top:0.5rem; flex-wrap:wrap; justify-content:center;">
+        <button id="test-smile-btn" class="cam-btn" type="button" style="background:#2d6a4f; padding:0.35rem 0.75rem; font-size:0.75rem;">😊 Test Smile</button>
+        <button id="test-neutral-btn" class="cam-btn" type="button" style="background:#52796f; padding:0.35rem 0.75rem; font-size:0.75rem;">😐 Test Neutral</button>
+      </div>
+      <div id="cam-status" class="status-badge" style="margin-top:0.6rem;">Camera Off</div>
     </div>
 
     <!-- Match Result Card -->
@@ -558,28 +562,37 @@ async function loadFaceModels() {
 }
 
 async function startCamera() {
-  try {
-    camStatus.className = "status-badge";
-    camStatus.textContent = "Accessing webcam…";
-    const ok = await loadFaceModels();
-    if (!ok) return;
+  camStatus.className = "status-badge";
+  camStatus.textContent = "Requesting webcam access…";
 
+  // Check if getUserMedia is supported in the current environment
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camStatus.className = "status-badge noface";
+    camStatus.textContent = "Webcam API not supported in this browser/frame.";
+    return;
+  }
+
+  try {
+    // 1. Immediately request the camera stream so the browser prompt appears
     streamInstance = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
+      video: { width: { ideal: 480 }, height: { ideal: 360 } },
       audio: false,
     });
     webcamVideo.srcObject = streamInstance;
-    await new Promise((resolve) => {
-      webcamVideo.onloadedmetadata = () => {
-        webcamVideo.play();
-        resolve();
-      };
-    });
+    await webcamVideo.play();
 
     isCameraRunning = true;
     camToggleBtn.textContent = "Stop Camera";
-    camStatus.textContent = "Detecting smile…";
+    camStatus.textContent = "Camera active! Loading AI model…";
 
+    // 2. Load models while camera is already showing
+    const ok = await loadFaceModels();
+    if (!ok) {
+      camStatus.textContent = "Camera on (expression model offline)";
+      return;
+    }
+
+    camStatus.textContent = "Detecting smile…";
     const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
 
     detectionInterval = setInterval(async () => {
@@ -603,13 +616,19 @@ async function startCamera() {
           setPlantMatch("snake");
         }
       } catch (e) {
-        console.warn("Detection frame skipped:", e);
+        console.warn("Detection skipped:", e);
       }
-    }, 250); // run 4 times a second for smooth performance and low CPU
+    }, 250);
   } catch (err) {
     console.error("Camera access error:", err);
     camStatus.className = "status-badge noface";
-    camStatus.textContent = "Webcam denied / unavailable";
+    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      camStatus.textContent = "Permission denied. Check browser camera settings.";
+    } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      camStatus.textContent = "No webcam device detected.";
+    } else {
+      camStatus.textContent = `Camera error: ${err.message || err.name}`;
+    }
   }
 }
 
@@ -636,6 +655,18 @@ camToggleBtn.addEventListener("click", () => {
   } else {
     startCamera();
   }
+});
+
+document.getElementById("test-smile-btn").addEventListener("click", () => {
+  camStatus.className = "status-badge smile";
+  camStatus.textContent = "Simulation: Smiling! 😊 (92%) -> Petunia";
+  setPlantMatch("petunia");
+});
+
+document.getElementById("test-neutral-btn").addEventListener("click", () => {
+  camStatus.className = "status-badge neutral";
+  camStatus.textContent = "Simulation: Neutral 😐 -> Snake Plant";
+  setPlantMatch("snake");
 });
 </script>
 </body>
