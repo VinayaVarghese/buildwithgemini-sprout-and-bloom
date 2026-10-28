@@ -481,19 +481,13 @@ root_agent = Agent(
         model=MODEL,
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
-    instruction=A2UI_INSTRUCTION,
-    tools=[
-        PreloadMemoryTool(),
-        list_plants,
-        get_plant_details,
-        add_plant,
-        get_beginner_gardener_checklist,
-        lookup_canadian_climate_zone,
-        search_botanical_species_info,
-        generate_plant_scene_image,
-    ],
-    after_model_callback=a2ui_callback,
-    after_agent_callback=generate_memories_callback,
+    instruction=(
+        "You are Sprout & Bloom, a lightweight, friendly plant care and gardening concierge tailored to Canada. "
+        "You help both beginner and experienced gardeners with plant care advice, indoor houseplants, "
+        "outdoor gardening, hardiness zones, frost dates, easy-care varieties, and troubleshooting care issues. "
+        "Answer questions conversationally, concisely, and accurately without needing external tool calls."
+    ),
+    tools=[],
 )
 
 app = App(
