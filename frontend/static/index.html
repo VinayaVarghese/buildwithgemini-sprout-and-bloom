@@ -318,7 +318,13 @@
         <video id="webcam" autoplay muted playsinline></video>
       </div>
 
-      <button id="cam-toggle-btn" class="cam-btn" type="button">Start Camera</button>
+      <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; width:100%;">
+        <button id="cam-toggle-btn" class="cam-btn" type="button">Start Camera</button>
+        <label class="cam-btn" style="background:#40916c; cursor:pointer; display:inline-flex; align-items:center; margin-top:0.8rem;">
+          📁 Upload Photo
+          <input type="file" id="photo-upload" accept="image/*" style="display:none;">
+        </label>
+      </div>
       <div style="display:flex; gap:0.4rem; margin-top:0.5rem; flex-wrap:wrap; justify-content:center;">
         <button id="test-smile-btn" class="cam-btn" type="button" style="background:#2d6a4f; padding:0.35rem 0.75rem; font-size:0.75rem;">😊 Test Smile</button>
         <button id="test-neutral-btn" class="cam-btn" type="button" style="background:#52796f; padding:0.35rem 0.75rem; font-size:0.75rem;">😐 Test Neutral</button>
@@ -667,6 +673,43 @@ document.getElementById("test-neutral-btn").addEventListener("click", () => {
   camStatus.className = "status-badge neutral";
   camStatus.textContent = "Simulation: Neutral 😐 -> Snake Plant";
   setPlantMatch("snake");
+});
+
+document.getElementById("photo-upload").addEventListener("change", async (ev) => {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  camStatus.className = "status-badge";
+  camStatus.textContent = "Analyzing uploaded photo…";
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  img.onload = async () => {
+    try {
+      const ok = await loadFaceModels();
+      if (!ok) return;
+      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
+      const result = await faceapi.detectSingleFace(img, detectorOptions).withFaceExpressions();
+      if (result && result.expressions) {
+        const happyScore = result.expressions.happy || 0;
+        if (happyScore > 0.5) {
+          camStatus.className = "status-badge smile";
+          camStatus.textContent = `Photo: Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
+          setPlantMatch("petunia");
+        } else {
+          camStatus.className = "status-badge neutral";
+          camStatus.textContent = `Photo: Neutral 😐 -> Snake Plant`;
+          setPlantMatch("snake");
+        }
+      } else {
+        camStatus.className = "status-badge noface";
+        camStatus.textContent = "No face detected in photo";
+      }
+    } catch (err) {
+      console.error("Photo analysis error:", err);
+      camStatus.className = "status-badge noface";
+      camStatus.textContent = "Analysis error";
+    }
+  };
 });
 </script>
 </body>
