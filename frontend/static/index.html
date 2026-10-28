@@ -7,6 +7,8 @@
 <!-- Optional: used only to draw A2UI Icon components. If it can't load (offline/
      corp network), icons fall back to showing their name as text. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+<!-- Lightweight in-browser face and expression recognition via @vladmandic/face-api -->
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
 <style>
   :root {
     --accent: #2d6a4f;
@@ -41,6 +43,18 @@
   .brand-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
   .brand-subtitle { font-size: 0.75rem; opacity: 0.88; font-weight: 400; }
 
+  /* App container layout */
+  .app-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  .chat-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
   #log {
     flex: 1;
     overflow-y: auto;
@@ -139,6 +153,116 @@
   }
   button:hover { background: var(--accent-dark); }
 
+  /* Webcam side panel on the right */
+  .cam-column {
+    width: 380px;
+    background: #ffffff;
+    border-left: 1px solid var(--border);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+  .cam-card {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .cam-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin-bottom: 0.3rem;
+  }
+  .cam-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+  }
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  video#webcam {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror view for user friendliness */
+  }
+  .cam-btn {
+    margin-top: 0.8rem;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.85rem;
+    border-radius: 16px;
+  }
+  .status-badge {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    background: #e2e8f0;
+    color: #475569;
+    font-weight: 600;
+  }
+  .status-badge.smile { background: #d1fae5; color: #065f46; }
+  .status-badge.neutral { background: #fef3c7; color: #92400e; }
+  .status-badge.noface { background: #fee2e2; color: #991b1b; }
+
+  /* Plant Recommendation Display Card */
+  .plant-result-card {
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(45, 106, 79, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease;
+  }
+  .plant-result-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: #e2e8f0;
+  }
+  .plant-result-body {
+    padding: 0.85rem;
+    width: 100%;
+  }
+  .plant-result-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin-bottom: 0.25rem;
+  }
+  .plant-result-reason {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* Responsive collapse on narrow windows */
+  @media (max-width: 900px) {
+    .app-container { flex-direction: column; overflow-y: auto; }
+    .cam-column { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+  }
+
   /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
   .a2card { border: 1px solid var(--border); border-radius: 14px; padding: 1rem; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.04); max-width: 100%; }
   .a2card + .a2card, .a2col > .a2card { margin-top: 0.6rem; }
@@ -164,21 +288,50 @@
     <div class="brand-subtitle">Canadian Plant Care & Gardening Concierge</div>
   </div>
 </header>
-<div id="log">
-  <div class="msg agent">
-    <div class="bubble">Hello! I'm your lightweight plant care concierge. Ask me anything about hardy outdoor varieties, Canadian frost dates, low-light indoor plants, or seasonal care! 🌸</div>
+<div class="app-container">
+  <!-- Left column: Botanical Chat Interface -->
+  <div class="chat-column">
+    <div id="log">
+      <div class="msg agent">
+        <div class="bubble">Hello! I'm your lightweight plant care concierge. Ask me anything about hardy outdoor varieties, Canadian frost dates, low-light indoor plants, or seasonal care! 🌸</div>
+      </div>
+    </div>
+    <div id="suggestions">
+      <button class="pill" data-prompt="What are the best low-light houseplants for Canadian winters?">🪴 Low-Light Houseplants</button>
+      <button class="pill" data-prompt="What are the frost dates and planting rules for Zone 5/6 (Toronto / Montreal)?">🇨🇦 Canadian Frost Dates</button>
+      <button class="pill" data-prompt="What flowering annuals are best for budding gardeners?">🌸 Top Flowering Annuals</button>
+      <button class="pill" data-prompt="How do I protect houseplants from radiator dry air and cold drafts?">❄️ Winter Care Tips</button>
+    </div>
+    <form id="form">
+      <input id="input" placeholder="Ask about plant care, frost dates, or varieties…" autocomplete="off" autofocus>
+      <button>Send</button>
+    </form>
   </div>
+
+  <!-- Right column: Webcam Smile Detector -->
+  <aside class="cam-column">
+    <div class="cam-card">
+      <div class="cam-title">📷 Smile & Plant Matcher</div>
+      <div class="cam-desc">Step in front of the camera: smile for <strong>Petunia</strong>, or stay neutral for <strong>Snake Plant</strong>!</div>
+      
+      <div class="video-wrapper">
+        <video id="webcam" autoplay muted playsinline></video>
+      </div>
+
+      <button id="cam-toggle-btn" class="cam-btn" type="button">Start Camera</button>
+      <div id="cam-status" class="status-badge">Camera Off</div>
+    </div>
+
+    <!-- Match Result Card -->
+    <div id="plant-match-card" class="plant-result-card">
+      <img id="plant-img" class="plant-result-img" src="https://images.unsplash.com/photo-1599598425947-230a73445646?auto=format&fit=crop&w=600&q=80" alt="Snake Plant">
+      <div class="plant-result-body">
+        <div id="plant-name" class="plant-result-name">Snake Plant (Sansevieria)</div>
+        <div id="plant-reason" class="plant-result-reason">Calm, resilient, and sturdy! Thrives in any low-light Canadian room with minimal watering.</div>
+      </div>
+    </div>
+  </aside>
 </div>
-<div id="suggestions">
-  <button class="pill" data-prompt="What are the best low-light houseplants for Canadian winters?">🪴 Low-Light Houseplants</button>
-  <button class="pill" data-prompt="What are the frost dates and planting rules for Zone 5/6 (Toronto / Montreal)?">🇨🇦 Canadian Frost Dates</button>
-  <button class="pill" data-prompt="What flowering annuals are best for budding gardeners?">🌸 Top Flowering Annuals</button>
-  <button class="pill" data-prompt="How do I protect houseplants from radiator dry air and cold drafts?">❄️ Winter Care Tips</button>
-</div>
-<form id="form">
-  <input id="input" placeholder="Ask about plant care, frost dates, or varieties…" autocomplete="off" autofocus>
-  <button>Send</button>
-</form>
 
 <script>
 const log = document.getElementById("log");
@@ -341,6 +494,148 @@ document.getElementById("suggestions").addEventListener("click", (ev) => {
   if (!pill) return;
   const prompt = pill.dataset.prompt;
   if (prompt) sendMessage(prompt);
+});
+
+/* ----------------------------------------------------------------------------
+ * Webcam Smile Detection & Plant Matcher (Petunia vs Snake Plant)
+ * Uses client-side @vladmandic/face-api TinyFaceDetector + FaceExpressionNet
+ * -------------------------------------------------------------------------- */
+const webcamVideo = document.getElementById("webcam");
+const camToggleBtn = document.getElementById("cam-toggle-btn");
+const camStatus = document.getElementById("cam-status");
+const plantImg = document.getElementById("plant-img");
+const plantName = document.getElementById("plant-name");
+const plantReason = document.getElementById("plant-reason");
+const plantMatchCard = document.getElementById("plant-match-card");
+
+const PETUNIA_DATA = {
+  name: "Petunia (Flowering Annual)",
+  img: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=600&q=80",
+  reason: "Bright, joyful, and smiling! Petunias bring vibrant Canadian summer blooms and love sunny balconies.",
+};
+
+const SNAKE_PLANT_DATA = {
+  name: "Snake Plant (Sansevieria)",
+  img: "https://images.unsplash.com/photo-1599598425947-230a73445646?auto=format&fit=crop&w=600&q=80",
+  reason: "Calm, focused, and resilient! Thrives in any low-light Canadian room with minimal watering.",
+};
+
+let currentMatch = "snake";
+let isCameraRunning = false;
+let modelsLoaded = false;
+let streamInstance = null;
+let detectionInterval = null;
+
+function setPlantMatch(type) {
+  if (currentMatch === type) return;
+  currentMatch = type;
+  const data = type === "petunia" ? PETUNIA_DATA : SNAKE_PLANT_DATA;
+  plantImg.src = data.img;
+  plantName.textContent = data.name;
+  plantReason.textContent = data.reason;
+  plantMatchCard.style.transform = "scale(1.03)";
+  setTimeout(() => { plantMatchCard.style.transform = "scale(1)"; }, 200);
+}
+
+async function loadFaceModels() {
+  if (modelsLoaded) return true;
+  camStatus.textContent = "Loading AI models…";
+  try {
+    const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model";
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+    ]);
+    modelsLoaded = true;
+    camStatus.textContent = "Models ready";
+    return true;
+  } catch (err) {
+    console.error("Model load error:", err);
+    camStatus.className = "status-badge noface";
+    camStatus.textContent = "Failed to load models";
+    return false;
+  }
+}
+
+async function startCamera() {
+  try {
+    camStatus.className = "status-badge";
+    camStatus.textContent = "Accessing webcam…";
+    const ok = await loadFaceModels();
+    if (!ok) return;
+
+    streamInstance = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
+      audio: false,
+    });
+    webcamVideo.srcObject = streamInstance;
+    await new Promise((resolve) => {
+      webcamVideo.onloadedmetadata = () => {
+        webcamVideo.play();
+        resolve();
+      };
+    });
+
+    isCameraRunning = true;
+    camToggleBtn.textContent = "Stop Camera";
+    camStatus.textContent = "Detecting smile…";
+
+    const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
+
+    detectionInterval = setInterval(async () => {
+      if (!isCameraRunning || webcamVideo.paused || webcamVideo.ended) return;
+      try {
+        const result = await faceapi.detectSingleFace(webcamVideo, detectorOptions).withFaceExpressions();
+        if (result && result.expressions) {
+          const happyScore = result.expressions.happy || 0;
+          if (happyScore > 0.55) {
+            camStatus.className = "status-badge smile";
+            camStatus.textContent = `Smiling! 😊 (${Math.round(happyScore * 100)}%) -> Petunia`;
+            setPlantMatch("petunia");
+          } else {
+            camStatus.className = "status-badge neutral";
+            camStatus.textContent = `Neutral 😐 -> Snake Plant`;
+            setPlantMatch("snake");
+          }
+        } else {
+          camStatus.className = "status-badge noface";
+          camStatus.textContent = "No face in frame";
+          setPlantMatch("snake");
+        }
+      } catch (e) {
+        console.warn("Detection frame skipped:", e);
+      }
+    }, 250); // run 4 times a second for smooth performance and low CPU
+  } catch (err) {
+    console.error("Camera access error:", err);
+    camStatus.className = "status-badge noface";
+    camStatus.textContent = "Webcam denied / unavailable";
+  }
+}
+
+function stopCamera() {
+  isCameraRunning = false;
+  if (detectionInterval) {
+    clearInterval(detectionInterval);
+    detectionInterval = null;
+  }
+  if (streamInstance) {
+    streamInstance.getTracks().forEach((t) => t.stop());
+    streamInstance = null;
+  }
+  webcamVideo.srcObject = null;
+  camToggleBtn.textContent = "Start Camera";
+  camStatus.className = "status-badge";
+  camStatus.textContent = "Camera Off";
+  setPlantMatch("snake");
+}
+
+camToggleBtn.addEventListener("click", () => {
+  if (isCameraRunning) {
+    stopCamera();
+  } else {
+    startCamera();
+  }
 });
 </script>
 </body>
